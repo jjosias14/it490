@@ -1,6 +1,5 @@
 #!/usr/bin/env php
->?php
-
+<?php
 //will load required libraries and configurations
 
 require_once 'path_to_config.inc'; //placeholder
@@ -17,12 +16,12 @@ function requestProcessor($request) {
     echo "Processing request at"  .date('m-d-y H:i:s') . " -Type:" .$request['type'] .PHP_EOL;
     var_dump($request);
 
-    $errorClient = new rabbitmqClinet 
+    $errorClient = new rabbitmqClinet ("path_to_error_logging_config.ini", "ErrorLoggingQueue"); //  placeholder
 
 
 try { 
     if (!isset($request['type'])){
-        throw new Exception(""); //Throws an exception if request type is missing (Sad)
+        throw new Exception("unsupported message type"); //Throws an exception if request type is missing (Sad)
 
     }
 
@@ -32,19 +31,22 @@ try {
     }
 
     return handleRequestsType($request) // Process the request based on it's type 
-    
+} catch (Exception $e) {
+    logError($errorClient, 'DBerrors', $e->getMessage()); 
+}
  }
 
-}
 
-function logError($client,$type,$erroeMessage){
-    //Sends error to RabbitMQ Error Logging Queue 
-    $client-> send_request(['type => $type,''error  =>$errorMessage']); 
 
-    //save the error locally 
+
+function logError($client, $type, $errorMessage) { 
+    // Sends error to RabbitMQ Error Logging Queue
+    $client->send_request(['type' => $type, 'error' => $errorMessage]); 
+
+    // Save the error locally
     error_log(date('Y-m-d H:i:s') . " - Error: " . $errorMessage . PHP_EOL, 3, $type . '_error_log.txt'); // Logs error with timestamp locally
-
 }
+
 
 function validateSession($sessionID) {
     //place holder
@@ -52,7 +54,7 @@ function validateSession($sessionID) {
 }
 
 //Setup and start the Rabbitmw server listener
-$serverConfig = "path_to_server.ini;" //placeholder for path to our RabbitMQ
+$serverConfig = "path_to_server_config.ini";  //placeholder for path to our RabbitMQ
 $queueName = "appServerQueue"; // Placeholder for rabbitmq queue for our app server
 
 $appServer = new rabbitMQServer($serverConfig, $queueName);
