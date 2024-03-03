@@ -23,7 +23,7 @@ function requestStuff($request)
            case "sessionValidation":
                return validateSession($request['sessionID']);
            case "registerUser":
-               return $registerUser($request['f_name'], $request['l_name'], $request['email'] . $request['password']);
+               return registerUser($request['f_name'], $request['l_name'], $request['email'] . $request['password']);
            default:
                return errorLogging($request['type'], $request['error']);
        }
