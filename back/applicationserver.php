@@ -1,15 +1,12 @@
-#!/usr/bin/env php
+#!/usr/bin/php
 <?php
 //will load required libraries and configurations
-
-require_once 'path_to_config.inc'; //placeholder
-require_once 'host_information.inc'; //placeholder
-require_once 'rabbitmq_lib.inc'; //placeholder
-require_once 'authentication_handler.inc' //placeholder
-
-
-require_once 'database_conncection.inc'; // datebase connection and funtcions //placeholder
-require_once 'database_function.inc'; //placeholder
+require_once ('path.inc');
+require_once ('get_host_info.inc');
+require_once ('rabbitMQLib.inc');
+require_once ('login.php.inc');
+require_once ('dataBaseconnect.php');
+require_once ('databaseFunctions.php');
 
 
 function requestProcessor($request) {
@@ -30,7 +27,7 @@ try {
         throw new Exception ('whomp whomp Invalid Session'); //Throws and exception if session validation fails 
     }
 
-    return handleRequestsType($request) // Process the request based on it's type 
+    return handleRequestsType($request); // Process the request based on it's type
 } catch (Exception $e) {
     logError($errorClient, 'DBerrors', $e->getMessage()); 
 }
