@@ -10,21 +10,20 @@ require_once ('databaseFunctions.php');
 
 
 function requestProcessor($request) {
-    echo "Processing request at"  .date('m-d-y H:i:s') . " -Type:" .$request['type'] .PHP_EOL;
+    echo "Processing request".PHP_EOL;
     var_dump($request);
-
-    $errorClient = new rabbitmqClinet ("path_to_error_logging_config.ini", "ErrorLoggingQueue"); //  placeholder
+    $errorClient = new rabbitmqClinet ("serverInfoMQ.ini", "Errors"); //  placeholder
 
 
 try { 
     if (!isset($request['type'])){
-        throw new Exception("unsupported message type"); //Throws an exception if request type is missing (Sad)
+        return "Error: unsupported message!"; //Throws an exception if request type is missing (Sad)
 
     }
 
-    $sessionValidationResult = valiadateSession($request['SessionID']);
-    if(!sessionValidationResult) {
-        throw new Exception ('whomp whomp Invalid Session'); //Throws and exception if session validation fails 
+    $validSession = valiadateSession($request['SessionID']);
+    if(!validateSession()) {
+        return json_encode(['valid'=>0]); //Throws and exception if session validation fails
     }
 
     return handleRequestsType($request); // Process the request based on it's type
@@ -38,7 +37,7 @@ try {
 
 function logError($client, $type, $errorMessage) { 
     // Sends error to RabbitMQ Error Logging Queue
-    $client->send_request(['type' => $type, 'error' => $errorMessage]); 
+    $client->send_request(['type' => $type, 'error' => $errorMessage]);
 
     // Save the error locally
     error_log(date('Y-m-d H:i:s') . " - Error: " . $errorMessage . PHP_EOL, 3, $type . '_error_log.txt'); // Logs error with timestamp locally
@@ -51,9 +50,9 @@ function validateSession($sessionID) {
 }
 
 //Setup and start the Rabbitmw server listener
-$serverConfig = "path_to_server_config.ini";  //placeholder for path to our RabbitMQ
 $queueName = "appServerQueue"; // Placeholder for rabbitmq queue for our app server
 
-$appServer = new rabbitMQServer($serverConfig, $queueName);
+$appServer = new rabbitMQServer("serverInfoMQ.ini", "application");
 $appServer->process_requests('requestProcessor'); // Starts processing incoming requests using the defined function
 exit();
+?>
