@@ -12,5 +12,5 @@ $path = '/usr/local/lib/system_libs';
            trigger_error("local.ini missing paths field\n",E_USER_NOTICE); 
         }
     }
-    set_include_path(get_include_path().PATH_SEPARATOR.$path);
+    set_include_path(path . incget_include_path() . PATH_SEPARATOR .$path);
 ?>

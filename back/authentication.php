@@ -10,7 +10,7 @@ require_once('databaseFunctions.php');// db stuff
 function requestStuff($request)
 {
     echo "got request".PHP_EOL;
-    $errorClient = new rabbitMQClient("serverInfoMW.ini","Errors");
+    $errorClient = new rabbitMQClient("serverInfoMQ.ini","Errors");
     // try catch stuff
    try {
        var_dump($request);
@@ -44,7 +44,6 @@ function errorLogging($type, $error)
     return json_encode(["message" => "Error: "]);
 }
 }
-$authentication = new  raabitMQServer("serverinfoMQ.ini","authentication");
+$authentication = new  rabbitMQServer("serverInfoMQ.ini","authentication");
 $authentication->process_requests('requestProcessor');
 exit();
-?>
