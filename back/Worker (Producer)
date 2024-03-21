@@ -2,6 +2,7 @@ import pika
 import json
 import mysql.connector
 from mysql.connector import Error
+import bcrypt  # Import the bcrypt library
 
 # Database configuration
 db_config = {
@@ -12,17 +13,42 @@ db_config = {
 }
 
 def db_connect():
+    """Establish a connection to the database."""
     return mysql.connector.connect(**db_config)
 
 def validate_user_credentials(username, password):
-    # Implementation of user validation logic, potentially including password hashing
-    pass
+    """Validate login credentials against hashed password in the database."""
+    try:
+        conn = db_connect()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT password FROM user WHERE username = %s", (username,))
+        user_record = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        if user_record and bcrypt.checkpw(password.encode('utf-8'), user_record['password'].encode('utf-8')):
+            return True
+        return False
+    except Error as e:
+        print(f"Database error: {e}")
+        return False
 
 def create_user(username, password):
-    # Implementation of user creation logic, including password hashing
-    pass
+    """Hash the password and store the new user in the database."""
+    hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+    try:
+        conn = db_connect()
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO user (username, password) VALUES (%s, %s)", (username, hashed_password.decode('utf-8')))
+        conn.commit()
+        cursor.close()
+        conn.close()
+        return True
+    except Error as e:
+        print(f"Database error: {e}")
+        return False
 
 def on_request(ch, method, props, body):
+    """Handle incoming RPC requests for user authentication."""
     request = json.loads(body)
     action = request.get('action')
     data = request.get('data')
@@ -31,7 +57,7 @@ def on_request(ch, method, props, body):
     if action == 'login':
         # Validate login credentials
         success = validate_user_credentials(data['username'], data['password'])
-        response = {'success': success, 'token': 'JWT_TOKEN_HERE_IF_SUCCESSFUL'}
+        response = {'success': success, 'token': 'JWT_TOKEN_HERE_IF_SUCCESSFUL' if success else ''}
     elif action == 'register':
         # Register a new user
         success = create_user(data['username'], data['password'])
@@ -44,6 +70,7 @@ def on_request(ch, method, props, body):
         body=json.dumps(response))
     ch.basic_ack(delivery_tag=method.delivery_tag)
 
+# Establish connection and start server
 connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
 channel = connection.channel()
 
@@ -53,3 +80,4 @@ channel.basic_consume(queue='auth_queue', on_message_callback=on_request)
 
 print("Awaiting RPC requests")
 channel.start_consuming()
+
