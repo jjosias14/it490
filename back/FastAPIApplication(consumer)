@@ -1,0 +1,67 @@
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+import uuid
+import pika
+import json
+from pika.exceptions import AMQPConnectionError
+
+app = FastAPI()
+
+class AuthRequest(BaseModel):
+    username: str
+    password: str
+
+rabbitmq_parameters = pika.ConnectionParameters(host='localhost')
+
+def call_rabbitmq(auth_data):
+    connection = pika.BlockingConnection(rabbitmq_parameters)
+    channel = connection.channel()
+    result = channel.queue_declare(queue='', exclusive=True)
+    callback_queue = result.method.queue
+    corr_id = str(uuid.uuid4())
+    channel.basic_publish(
+        exchange='',
+        routing_key='auth_queue',
+        properties=pika.BasicProperties(
+            reply_to=callback_queue,
+            correlation_id=corr_id,
+        ),
+        body=json.dumps(auth_data))
+    response = None
+
+    def on_response(ch, method, props, body):
+        nonlocal response
+        if corr_id == props.correlation_id:
+            response = json.loads(body)
+            ch.stop_consuming()
+
+    channel.basic_consume(
+        queue=callback_queue,
+        on_message_callback=on_response,
+        auto_ack=True)
+
+    channel.start_consuming()
+    connection.close()
+    return response
+
+@app.post("/api/auth/login")
+async def login(request: AuthRequest):
+    try:
+        response = call_rabbitmq({'action': 'login', 'data': {'username': request.username, 'password': request.password}})
+        if response and response["success"]:
+            return {"message": "Login successful", "token": response.get("token")}
+        else:
+            raise HTTPException(status_code=400, detail="Login failed")
+    except AMQPConnectionError:
+        raise HTTPException(status_code=503, detail="Authentication service unavailable")
+
+@app.post("/api/auth/register")
+async def register(request: AuthRequest):
+    try:
+        response = call_rabbitmq({'action': 'register', 'data': {'username': request.username, 'password': request.password}})
+        if response and response["success"]:
+            return {"message": "Registration successful"}
+        else:
+            raise HTTPException(status_code=400, detail="Registration failed")
+    except AMQPConnectionError:
+        raise HTTPException(status_code=503, detail="Authentication service unavailable")
