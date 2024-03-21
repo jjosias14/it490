@@ -1,0 +1,23 @@
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+
+app = FastAPI()
+
+class APIRequest(BaseModel):
+    action: str
+    data: dict
+
+@app.post("/api/action")
+async def handle_action(request: APIRequest):
+    match request.action:
+        case "login":
+            # Process login
+            return {"message": "Login processed"}
+        case "register":
+            # Process registration
+            return {"message": "Registration processed"}
+        case "logout":
+            # Process logout
+            return {"message": "Logout processed"}
+        case _:
+            raise HTTPException(status_code=400, detail="Unknown action")
