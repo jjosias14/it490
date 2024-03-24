@@ -16,6 +16,64 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
+-- Table structure for table `Forum_Comments`
+--
+
+DROP TABLE IF EXISTS `Forum_Comments`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `Forum_Comments` (
+  `comment_id` int NOT NULL AUTO_INCREMENT,
+  `post_id` int DEFAULT NULL,
+  `user_id` int DEFAULT NULL,
+  `content` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`comment_id`),
+  KEY `post_id` (`post_id`),
+  KEY `user_id` (`user_id`),
+  CONSTRAINT `Forum_Comments_ibfk_1` FOREIGN KEY (`post_id`) REFERENCES `Forum_Posts` (`post_id`),
+  CONSTRAINT `Forum_Comments_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `Users` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `Forum_Comments`
+--
+
+LOCK TABLES `Forum_Comments` WRITE;
+/*!40000 ALTER TABLE `Forum_Comments` DISABLE KEYS */;
+/*!40000 ALTER TABLE `Forum_Comments` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `Forum_Posts`
+--
+
+DROP TABLE IF EXISTS `Forum_Posts`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `Forum_Posts` (
+  `post_id` int NOT NULL AUTO_INCREMENT,
+  `user_id` int DEFAULT NULL,
+  `title` varchar(255) DEFAULT NULL,
+  `content` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`post_id`),
+  KEY `user_id` (`user_id`),
+  CONSTRAINT `Forum_Posts_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `Users` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `Forum_Posts`
+--
+
+LOCK TABLES `Forum_Posts` WRITE;
+/*!40000 ALTER TABLE `Forum_Posts` DISABLE KEYS */;
+/*!40000 ALTER TABLE `Forum_Posts` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `Ingredients`
 --
 
@@ -37,6 +95,35 @@ CREATE TABLE `Ingredients` (
 LOCK TABLES `Ingredients` WRITE;
 /*!40000 ALTER TABLE `Ingredients` DISABLE KEYS */;
 /*!40000 ALTER TABLE `Ingredients` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `Ratings`
+--
+
+DROP TABLE IF EXISTS `Ratings`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `Ratings` (
+  `rating_id` int NOT NULL AUTO_INCREMENT,
+  `recipe_id` int DEFAULT NULL,
+  `user_id` int DEFAULT NULL,
+  `rating` int DEFAULT NULL,
+  PRIMARY KEY (`rating_id`),
+  KEY `recipe_id` (`recipe_id`),
+  KEY `user_id` (`user_id`),
+  CONSTRAINT `Ratings_ibfk_1` FOREIGN KEY (`recipe_id`) REFERENCES `Recipes` (`recipe_id`),
+  CONSTRAINT `Ratings_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `Users` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `Ratings`
+--
+
+LOCK TABLES `Ratings` WRITE;
+/*!40000 ALTER TABLE `Ratings` DISABLE KEYS */;
+/*!40000 ALTER TABLE `Ratings` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -81,6 +168,12 @@ CREATE TABLE `Recipes` (
   `diet_type` varchar(255) DEFAULT NULL,
   `preparation_time` int DEFAULT NULL,
   `cooking_time` int DEFAULT NULL,
+  `calories` int DEFAULT NULL,
+  `views` int DEFAULT NULL,
+  `protein` float DEFAULT NULL,
+  `fat` float DEFAULT NULL,
+  `carbs` float DEFAULT NULL,
+  `image_url` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`recipe_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -150,6 +243,29 @@ LOCK TABLES `Users` WRITE;
 /*!40000 ALTER TABLE `Users` DISABLE KEYS */;
 /*!40000 ALTER TABLE `Users` ENABLE KEYS */;
 UNLOCK TABLES;
+
+--
+-- Table structure for table `login`
+--
+
+DROP TABLE IF EXISTS `login`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `login` (
+  `username` varchar(255) DEFAULT NULL,
+  `email` varchar(255) DEFAULT NULL,
+  `password` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `login`
+--
+
+LOCK TABLES `login` WRITE;
+/*!40000 ALTER TABLE `login` DISABLE KEYS */;
+/*!40000 ALTER TABLE `login` ENABLE KEYS */;
+UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -160,4 +276,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-03-21 19:10:56
+-- Dump completed on 2024-03-24 18:34:15
